@@ -16,6 +16,7 @@ import (
 	"github.com/ava-labs/avalanchego/utils/constants"
 	"github.com/ava-labs/avalanchego/utils/logging"
 	"github.com/ava-labs/avalanchego/utils/set"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/awm-relayer/utils"
 	"github.com/ava-labs/subnet-evm/ethclient"
 	"github.com/ava-labs/subnet-evm/precompile/contracts/warp"
@@ -48,7 +49,7 @@ type ManualWarpMessage struct {
 	DestinationAddress      string `mapstructure:"destination-address" json:"destination-address"`
 
 	// convenience fields to access the values after initialization
-	unsignedMessageBytes    []byte
+	unsignedMsg             *avalancheWarp.UnsignedMessage
 	sourceBlockchainID      ids.ID
 	destinationBlockchainID ids.ID
 	sourceAddress           common.Address
@@ -265,8 +266,8 @@ func (c *Config) Validate() error {
 	return nil
 }
 
-func (m *ManualWarpMessage) GetUnsignedMessageBytes() []byte {
-	return m.unsignedMessageBytes
+func (m *ManualWarpMessage) GetUnsignedMessage() *avalancheWarp.UnsignedMessage {
+	return m.unsignedMsg
 }
 func (m *ManualWarpMessage) GetSourceBlockchainID() ids.ID {
 	return m.sourceBlockchainID
@@ -285,7 +286,7 @@ func (m *ManualWarpMessage) GetDestinationAddress() common.Address {
 // Does not modify the public fields as derived from the configuration passed to the application,
 // but does initialize private fields available through getters
 func (m *ManualWarpMessage) Validate() error {
-	unsignedMsg, err := hex.DecodeString(utils.SanitizeHexString(m.UnsignedMessageBytes))
+	unsignedMsgBytes, err := hex.DecodeString(utils.SanitizeHexString(m.UnsignedMessageBytes))
 	if err != nil {
 		return err
 	}
@@ -305,7 +306,11 @@ func (m *ManualWarpMessage) Validate() error {
 	if err != nil {
 		return err
 	}
-	m.unsignedMessageBytes = unsignedMsg
+	unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(unsignedMsgBytes)
+	if err != nil {
+		return err
+	}
+	m.unsignedMsg = unsignedMsg
 	m.sourceBlockchainID = sourceBlockchainID
 	m.sourceAddress = common.BytesToAddress(sourceAddress)
 	m.destinationBlockchainID = destinationBlockchainID

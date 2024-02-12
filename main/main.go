@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 	"log"
 	"net/http"
@@ -181,8 +180,8 @@ func main() {
 		sourceBlockchainID := msg.GetSourceBlockchainID()
 
 		warpLogInfo := vmtypes.WarpLogInfo{
-			SourceAddress:    msg.GetSourceAddress(),
-			UnsignedMsgBytes: msg.GetUnsignedMessageBytes(),
+			SourceAddress: msg.GetSourceAddress(),
+			UnsignedMsg:   msg.GetUnsignedMessage(),
 		}
 		manualWarpMessages[sourceBlockchainID] = append(manualWarpMessages[sourceBlockchainID], &warpLogInfo)
 	}
@@ -277,14 +276,14 @@ func runRelayer(
 		logger.Info(
 			"Relaying manual Warp message",
 			zap.String("blockchainID", sourceSubnetInfo.BlockchainID),
-			zap.String("warpMessageBytes", hex.EncodeToString(warpMessage.UnsignedMsgBytes)),
+			zap.String("warpMessageID", warpMessage.UnsignedMsg.ID().String()),
 		)
 		err := relayer.RelayMessage(warpMessage, false)
 		if err != nil {
 			logger.Error(
 				"Failed to relay manual Warp message. Continuing.",
 				zap.Error(err),
-				zap.String("warpMessageBytes", hex.EncodeToString(warpMessage.UnsignedMsgBytes)),
+				zap.String("warpMessageID", warpMessage.UnsignedMsg.ID().String()),
 			)
 			continue
 		}

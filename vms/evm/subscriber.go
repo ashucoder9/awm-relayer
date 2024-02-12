@@ -13,6 +13,7 @@ import (
 
 	"github.com/ava-labs/avalanchego/ids"
 	"github.com/ava-labs/avalanchego/utils/logging"
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ava-labs/awm-relayer/config"
 	"github.com/ava-labs/awm-relayer/vms/vmtypes"
 	"github.com/ava-labs/subnet-evm/core/types"
@@ -100,11 +101,20 @@ func (s *subscriber) NewWarpLogInfo(log types.Log, isCatchUpMessage bool) (*vmty
 		return nil, ErrInvalidLog
 	}
 
+	unsignedMsg, err := avalancheWarp.ParseUnsignedMessage(log.Data)
+	if err != nil {
+		s.logger.Error(
+			"Failed to parse unsigned message",
+			zap.Error(err),
+		)
+		return nil, err
+	}
+
 	return &vmtypes.WarpLogInfo{
 		// BytesToAddress takes the last 20 bytes of the byte array if it is longer than 20 bytes
 		SourceAddress:    common.BytesToAddress(log.Topics[1][:]),
 		SourceTxID:       log.TxHash[:],
-		UnsignedMsgBytes: log.Data,
+		UnsignedMsg:      unsignedMsg,
 		BlockNumber:      log.BlockNumber,
 		IsCatchUpMessage: isCatchUpMessage,
 	}, nil

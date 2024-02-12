@@ -382,14 +382,7 @@ func (r *Relayer) RelayMessage(warpLogInfo *vmtypes.WarpLogInfo, storeProcessedH
 		zap.String("blockchainID", r.sourceBlockchainID.String()),
 	)
 	// Unpack the VM message bytes into a Warp message
-	unsignedMessage, err := r.contractMessage.UnpackWarpMessage(warpLogInfo.UnsignedMsgBytes)
-	if err != nil {
-		r.logger.Error(
-			"Failed to unpack sender message",
-			zap.Error(err),
-		)
-		return err
-	}
+	unsignedMessage := warpLogInfo.UnsignedMsg
 
 	r.logger.Info(
 		"Unpacked warp message",

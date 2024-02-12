@@ -4,6 +4,7 @@
 package vmtypes
 
 import (
+	avalancheWarp "github.com/ava-labs/avalanchego/vms/platformvm/warp"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -13,7 +14,7 @@ import (
 type WarpLogInfo struct {
 	SourceAddress    common.Address
 	SourceTxID       []byte
-	UnsignedMsgBytes []byte
+	UnsignedMsg      *avalancheWarp.UnsignedMessage
 	BlockNumber      uint64
 	IsCatchUpMessage bool
 }
